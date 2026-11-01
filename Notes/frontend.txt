@@ -1,0 +1,2 @@
+1. For your authentication state, the most suitable approach is React Context. - Create an AuthContext - Wrap your App with AuthProvider
+2. check why backend sending repeated questions even the role is different...sends developer questions for civil engineer etc

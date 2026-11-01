@@ -1,0 +1,231 @@
+// 1. Create State
+//    → Add all data required by the graph
+
+// 2. Create Nodes
+//    → Create functions that perform the required work
+
+// 3. Create Routers
+//    → Decide which node should run next
+
+// 4. Create Graph
+//    → Add nodes and connect them with edges
+
+// 5. Compile Graph
+//    → Prepare the graph for execution
+
+
+//                         START
+//                           |
+//                           ▼
+//                  graph.invoke(state)
+//                           |
+//                           ▼
+//                 ┌───────────────────┐
+//                 │      Router       │
+//                 │ Check state.action│
+//                 └───────────────────┘
+//                           |
+//              ┌────────────┴────────────┐
+//              │                         │
+//              ▼                         ▼
+//       action = "start"          action = "feedback"
+//              │                         │
+//              ▼                         ▼
+//     ┌─────────────────┐       ┌─────────────────┐
+//     │  Interview Node │       │  Feedback Node  │
+//     └─────────────────┘       └─────────────────┘
+//              │                         │
+//              ▼                         ▼
+//     ┌─────────────────┐       ┌─────────────────┐
+//     │ Interview Agent │       │ Feedback Agent  │
+//     └─────────────────┘       └─────────────────┘
+//              │                         │
+//              ▼                         ▼
+//          Groq LLM                  Groq LLM
+//              │                         │
+//              ▼                         ▼
+//     Generate Questions          Generate Feedback
+//              │                         │
+//              ▼                         ▼
+//             END              ┌─────────────────────┐
+//                               │  Feedback Router    │
+//                               │     completed ?     │
+//                               └─────────────────────┘
+//                                         │
+//                            ┌────────────┴────────────┐
+//                            │                         │
+//                            ▼                         ▼
+//                     completed=false          completed=true
+//                            │                         │
+//                            ▼                         ▼
+//                           END                ┌────────────────┐
+//                                              │  Summary Node  │
+//                                              └────────────────┘
+//                                                       │
+//                                                       ▼
+//                                              ┌────────────────┐
+//                                              │  Summary Agent │
+//                                              └────────────────┘
+//                                                       │
+//                                                       ▼
+//                                                   Groq LLM
+//                                                       │
+//                                                       ▼
+//                                                Generate Report
+//                                                       │
+//                                                       ▼
+//                                                      END
+
+
+
+Note: You don't pass fields because graph.invoke() always requires them. You pass fields because a node that may run in that graph execution requires them.
+
+graph.invoke()
+      ↓
+   action
+      ↓
+   Router
+      ↓
+ ┌───────────────┐
+ │               │
+start         feedback
+ │               │
+ ↓               ↓
+Interview      Feedback
+Node            Node
+ │               │
+ ↓               ↓
+needs          needs
+role           question
+type           answer
+resume         difficulty
+ │               │
+ ↓               ↓
+END          completed?
+                 │
+                 ↓
+              Summary
+                 │
+                 ↓
+          needs role/type/questions
+
+
+// -------------------------------- controllers --------------------------------->
+
+1. startInterview
+→ get userId from request headers
+→ get type, role, useResume, and resume from request body
+→ validate type and role
+→ call LangGraph with action = "start"
+→ get generated questions
+→ if no questions → return error
+→ create interview in MongoDB
+→ clear user's interview cache from Redis
+→ return interviewId, first question, and total question count
+
+
+2. submitAnswer
+→ get userId from request headers
+→ get interviewId and answer from request body
+→ validate interviewId and answer
+→ find interview in MongoDB using interviewId + userId
+→ if not found → return 404
+→ if already completed → return error
+→ get current question
+→ if question is invalid → return error
+→ save user's answer
+→ check whether this is the last question
+→ call LangGraph with action = "feedback"
+→ save feedback to the current question
+→ increase currentQuestion index
+→ if last question:
+    → mark interview as completed
+    → save report fields
+→ save interview to MongoDB
+→ clear user's interview cache from Redis
+→ if completed → return final interview result
+→ otherwise → return next question and feedback
+
+
+3. getInterview
+→ get userId from request headers
+→ get interview ID from request parameters
+→ validate ID
+→ find interview in MongoDB using ID + userId
+→ if not found → return 404
+→ return interview
+
+
+4. getAllInterviews
+→ get userId from request headers
+→ check Redis for cached dashboard data using interviews:<userId>
+→ if cache exists:
+    → parse cached JSON
+    → return cached response
+→ if cache does not exist:
+    → fetch user's interviews from MongoDB
+    → sort interviews from newest to oldest
+    → filter completed interviews
+    → calculate dashboard statistics:
+        → total interviews
+        → total questions in completed interviews
+        → number of completed interviews
+        → average score of completed interviews
+    → create helper function to calculate average feedback scores
+        → if interview list is empty, return default skill scores of 0
+        → otherwise, total each feedback category across the questions
+        → divide each category total by the number of questions
+        → round each average
+    → separate completed interviews into technical and HR interviews
+    → calculate average skill scores for technical interviews
+    → calculate average skill scores for HR interviews
+    → count completed technical interviews
+    → count completed HR interviews
+    → build dashboard payload
+    → save payload in Redis as JSON with a 600-second expiration
+    → return dashboard payload
+
+
+//-------------------------------- Redis usage --------------------------------->
+
+startInterview
+     │
+     ├─ Generate questions with LangGraph
+     ├─ Save new interview in MongoDB
+     └─ Delete interviews:<userId> from Redis
+            │
+            └─ Prevents the dashboard from showing a cached list
+               that doesn't include the new interview.
+
+
+submitAnswer
+     │
+     ├─ Save answer and feedback in MongoDB
+     ├─ If final answer: save report and mark interview completed
+     └─ Delete interviews:<userId> from Redis
+            │
+            └─ Prevents the dashboard from showing old progress,
+               scores, or completion status.
+
+
+getInterview
+     │
+     └─ Read interview directly from MongoDB
+            │
+            └─ No Redis use in this controller.
+
+
+getAllInterviews
+     │
+     ├─ Check Redis first
+     │     └─ If found: return cached dashboard data
+     │
+     └─ If not found:
+           ├─ Fetch interviews from MongoDB
+           ├─ Calculate stats and average skill scores
+           ├─ Cache the response in Redis for 10 minutes
+           └─ Return the response
+
+
+
+

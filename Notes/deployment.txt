@@ -1,0 +1,79 @@
+1. Dockerfile :---- Defines the steps to package a microservice and its dependencies into a Docker image.
+
+2. Docker Image :---- The packaged, portable version of a microservice. It is stored in a registry and used to create containers.
+
+3. Docker Build :----  Reads a Dockerfile and creates a Docker image.
+
+4. Amazon ECR (Elastic Container Registry) :----  Stores Docker images in AWS so deployment services can retrieve them.
+
+5. Docker Push :---- Uploads a locally built Docker image to a container registry such as Amazon ECR.
+
+6. Amazon ECS (Elastic Container Service) :---- Runs and manages containers using task definitions and services.
+
+7. ECS Cluster :---- A logical grouping of ECS services and tasks that run your application.
+
+8. ECS Task :---- A running instance of a task definition. In this project, each microservice can run as a separate task.
+
+9. VPC (Virtual Private Cloud) :---- Provides an isolated network in AWS for your application’s resources.
+
+10. Subnets :---- Divide a VPC into network sections. They let you place resources in different network zones, such as public and private subnets.
+
+11. Security Group :---- Acts as a virtual firewall that controls inbound and outbound traffic to AWS resources.
+
+12. Application Load Balancer (ALB) :---- Receives incoming HTTP/HTTPS requests and forwards them to the appropriate target group.
+
+13. Target Group :---- Identifies the destinations—such as ECS tasks—that the load balancer sends requests to.
+
+14. API Gateway :---- The application’s entry point. It routes API requests, such as `/api/auth` or `/api/billing`, to the corresponding microservice.
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Developer
+   |
+   | builds each microservice
+   ▼
+Dockerfiles
+   |
+   | docker build
+   ▼
+Docker Images
+   |
+   | docker push
+   ▼
+Amazon ECR
+   |
+   | ECS pulls the images
+   ▼
+ECS Cluster
+   |
+   ├── Gateway Task
+   ├── Auth Task
+   ├── Chat Task
+   ├── Agent Task
+   └── Billing Task
+
+Incoming request
+   |
+   ▼
+Application Load Balancer
+   |
+   ▼
+Gateway Service
+   |
+   ├── /api/auth    → Auth Service
+   ├── /api/chat    → Chat Service
+   ├── /api/agent   → Agent Service
+   └── /api/billing → Billing Service
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+deployement sakshi version steps :-
+
+1. add redis.on method -> log redis conneted in it 
+2. move frontend  and backend url in .env
+3. authcontroller : inside both login/logout change : secure: false to true ,sameSite: "strict" to "none",
+4. add "start": "node index.js" in all package.json files
+5. add .dockerignore in backend folder
+6. add "Dockerfile" in gateway folder 
