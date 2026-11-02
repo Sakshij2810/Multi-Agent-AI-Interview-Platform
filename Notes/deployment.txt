@@ -71,9 +71,48 @@ Gateway Service
 
 deployement sakshi version steps :-
 
+- docker setup 
 1. add redis.on method -> log redis conneted in it 
 2. move frontend  and backend url in .env
 3. authcontroller : inside both login/logout change : secure: false to true ,sameSite: "strict" to "none",
 4. add "start": "node index.js" in all package.json files
 5. add .dockerignore in backend folder
 6. add "Dockerfile" in gateway folder 
+7. add "Dockerfile" in all services folder 
+8. create images and containers of all these dockerfile 
+
+- AWS setup
+
+--> ECR
+
+(push images) 
+1. menu burger icon -> private registry -> repository -> click "create repository" button -> add "gateway" name to it -> create
+2. once repositry created -> click on its name "gateway" -> it will show u images and "view push commands" button -> click on it -> check u have installed aws cli on mac by "aws --version" 
+3. create IAM user -> give them all permissions that is required -> then genearte access key -> download file
+4. in terminal -> run "aws configure" -> if it shows  " AWS Access Key ID [****************ASNH]: "
+
+AWS Access Key ID [****************ASNH]: "Access key ID"
+AWS Secret Access Key [****************s8K2]: "Secret access key"
+Default region name [ap-northeast-1]: us-east-1
+Default output format [json]: json
+
+5. finally run : 1st command of "view push commands" -> it should say "login succed"
+--- we already build images on docker - so thats why we skip 3rd commond ----------------------(error chances : check all images and pushing images spellings , both should match like "interview-service" etc)
+6. then add next 2 commands one by one
+7. do this 2 steps for all services -> 1. create repo 2. run last 2 commands from "view push commands"
+
+--> VPC
+
+1. create VPC -> open VPC -> click "create vpc" -> add name -> select "none" for VPC endpoints -> click "create" -> done
+2. (Subnets) this VPC will create 2 public , 2 private subnets
+
+(Security groups)
+
+1. InterviewFresherAI-SG ==> create btn -> add group name "InterviewFresherAI-SG" , add description, select VPC which we created above -> add 2 inbound rules 1. HTTP, 2. HTTPS with anywhere IV:4 destination
+2. InterviewECS-SG ===> same | only add all ports on Custom TCP with ports 8000 - 8005 for all services : but for 8000 port use InterviewALB-SG and for others use InterviewECS-SG as source
+3. InterviewREDIS_SG ====> same | only add all ports on Custom TCP with port 6379 - source :  / InterviewECS-SG
+
+(Load Balancer)
+1. create loadbalacer -> here create Targeted group as well
+
+pending ........
