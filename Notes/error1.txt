@@ -1,0 +1,40 @@
+Amazon Q
+I can see exactly what's happening. All 4 tasks are failing with the same error — your ecsTaskExecutionRole is missing the logs:CreateLogGroup permission.
+
+AccessDeniedException: ecsTaskExecutionRole is not authorized to perform: 
+logs:CreateLogGroup on resource: arn:aws:logs:ap-southeast-2:...:log-group:/ecs/auth-service
+
+The AmazonECSTaskExecutionRolePolicy managed policy does NOT include logs:CreateLogGroup by default — it only has logs:CreateLogStream and logs:PutLogEvents. You need to add it manually.
+
+Fix: Add logs:CreateLogGroup to your ecsTaskExecutionRole
+Option 1 — Add an Inline Policy (Quickest Fix)
+Go to IAM → Roles → ecsTaskExecutionRole 
+Click Add permissions → Create inline policy
+Switch to the JSON tab and paste this:
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": "logs:CreateLogGroup",
+      "Resource": "arn:aws:logs:ap-southeast-2:*:log-group:/ecs/*"
+    }
+  ]
+}
+
+Click Next → Name it ECSCreateLogGroup → Click Create policy
+Option 2 — Pre-create the Log Group (Avoids permission change)
+If you'd rather not modify the role, manually create the log group now:
+
+Go to CloudWatch → Log Groups → Create log group 
+Log group name: /ecs/auth-service
+Click Create
+This way the log group already exists and ECS won't need to create it — so logs:CreateLogGroup permission is never needed.
+
+After the Fix
+Once you've done either option, go back to your auth-service and click Update service → Force new deployment to trigger a fresh task launch. The tasks should start successfully this time.
+
+Option 1 is recommended since it's a permanent fix and works for any future log groups under /ecs/*.
+
+
+----------------------------> i followed option 1 : and got success

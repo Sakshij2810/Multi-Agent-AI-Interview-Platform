@@ -115,4 +115,43 @@ Default output format [json]: json
 (Load Balancer)
 1. create loadbalacer -> here create Targeted group as well
 
-pending ........
+(Redis) (Elastic Cache)
+1. Elastic Cache -> Redis OSS caches -> create cache -> "interviewRedis" name (folow more steps from utube tutorial) -> after creation we will get "Primary endpoint" and "Reader endpoint"
+
+(ECS)
+1. Clusters -> create cluster -> name "backend" -> create -> done
+2. Tasks definations -> 
+
+
+steps missing*********
+
+(ECR)
+1. clusters -> backend -> services -> create service (auth-service) 
+2. here where error comes -> once i hit create auth-service -> then expected is that -> 1. serivce should deployed successfully 2. tasks status: "running" ->  logs: u should see ur added code logs like -> "connected DB" "redis connected" "Auth service is running on 8001" ->
+3. but unfortunately the tasks were failing...so fixed that issue ...refer error files for solution
+
+------------------------------------------------------------------ ERROR COMES (refer to error1.txt) ------------------------------------------------------------------
+------------------------------------------------------------------ ERROR COMES (refer to error2.txt) ------------------------------------------------------------------
+
+4. create all services inside backend cluster ECR -> all services should run successfully
+
+(Load balancer)
+1. copy DNS name: InterviewFresherAI-LB-251141654.ap-southeast-2.elb.amazonaws.com -> open on browser -> check is it working or not
+
+(Cloud front)
+1. cloud front -> distributions -> create distribution (Specify origin : Elastic Load Balancer)
+
+********************* this is where u will get ur BACKEND_URL (Distribution domain name) once distribution is deployed successfully ******************************************
+
+------------------------------------------------------------------ DONE WITH BACKEND DEPLOYMENT ------------------------------------------------------------------
+
+frontend deployement setps -----
+
+1. cd frontend -> update env VITE_BACKEND_URL to new BACKEND_URL we got from aws -> run "npm run dev" check all apis are working or not
+2. once testing done -> run "npm run build" -> this creates "dist" folder
+
+(S3)
+1. open s3 in aws -> click "create bucket" -> name : "interviewfresherai-frontend" -> create bucket -> click "upload" ---> "add files" from dist root level -> "add folders" "assests"
+
+(Cloud front)
+1. cloud front -> distributions -> create distribution (Specify origin : Amazon S3)

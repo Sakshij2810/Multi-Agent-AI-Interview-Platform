@@ -1,0 +1,67 @@
+-------------- error --------------
+No, you do NOT need to delete your repositories. The issue is clear now.
+
+What Went Wrong
+When you built your image earlier, you built it without specifying the platform: docker build -f ./gateway/Dockerfile -t gateway .
+
+Since you're likely on an Apple M1/M2/M3 Mac, Docker automatically built the image for linux/arm64 (your Mac's architecture). But ECS Fargate runs on linux/amd64.
+
+That's exactly why you're seeing: image Manifest does not contain descriptor matching platform 'linux/amd64'
+
+-------------- solution --------------
+
+The Fix — Rebuild & Push for linux/amd64
+You don't need to delete anything. Just rebuild with the correct platform and push to your existing ECR repositories. Run these commands for your auth-service:
+
+
+# Run all these commands from your backend folder
+
+# Step 1 - Login (you already did this, but redo if token expired)
+aws ecr get-login-password --region ap-southeast-2 | docker login --username AWS --password-stdin 736486261407.dkr.ecr.ap-southeast-2.amazonaws.com
+
+real command ------> aws ecr get-login-password --region ap-southeast-2 | docker login --username AWS --password-stdin 736486261407.dkr.ecr.ap-southeast-2.amazonaws.com
+
+# Step 2 - Build for amd64 (THIS is the key fix)
+docker buildx build --platform linux/amd64 \
+  -f ./auth/Dockerfile \
+  -t 736486261407.dkr.ecr.ap-southeast-2.amazonaws.com/auth-service:latest \
+  --push .
+
+
+The --push flag builds and pushes to ECR in one step — no separate docker tag and docker push needed.
+
+
+real command ------> docker buildx build --platform linux/amd64 \
+  -f ./services/auth/Dockerfile \
+  -t 736486261407.dkr.ecr.ap-southeast-2.amazonaws.com/auth-service:latest \
+  --push .
+
+
+Do This for ALL Your Services
+Since all your images were likely built the same way, repeat for each one:
+
+# billing-service
+real command ------> docker buildx build --platform linux/amd64 -f ./services/billing/Dockerfile \
+  -t 736486261407.dkr.ecr.ap-southeast-2.amazonaws.com/billing-service:latest --push .
+
+# gateway
+real command ------> docker buildx build --platform linux/amd64 -f ./gateway/Dockerfile \
+  -t 736486261407.dkr.ecr.ap-southeast-2.amazonaws.com/gateway:latest --push .
+
+
+# interview-service
+real command ------> docker buildx build --platform linux/amd64 -f ./services/interview/Dockerfile \
+  -t 736486261407.dkr.ecr.ap-southeast-2.amazonaws.com/interview-service:latest --push .
+
+# resume-service
+real command ------> docker buildx build --platform linux/amd64 -f ./services/resume/Dockerfile \
+  -t 736486261407.dkr.ecr.ap-southeast-2.amazonaws.com/resume-service:latest --push .
+
+
+Note: Adjust the -f Dockerfile paths to match your actual project folder structure.
+
+After Pushing
+Once all images are pushed with the correct platform, go back to your auth-service on ECS and the task 50867828c98f48e699cc3c402680e861 which is currently Pending should either succeed, or force a new deployment and it will pick up the new amd64 image automatically.
+
+
+
