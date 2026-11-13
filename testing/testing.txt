@@ -1,0 +1,3 @@
+1.  "Unauthorised" popup at start
+2. "sometimes coins didnt get shown on ui"
+3. diksha account -> error -> "cannot read properties of null, reading "userId"

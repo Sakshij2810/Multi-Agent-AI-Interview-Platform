@@ -7,7 +7,7 @@ export const getCurrentUser = async () => {
 
     return res.data;
   } catch (error) {
-    alert(error.response?.data?.message || "Something went wrong.");
+    console.error(error.response?.data?.message || "Something went wrong.");
   }
 };
 
@@ -16,6 +16,6 @@ export const deductCoins = async (data) => {
     const res = await api.post(server_base_endpoints.auth.use_coins, data);
     return res.data;
   } catch (error) {
-    alert(error.response?.data?.message || "Something went wrong.");
+    console.error(error.response?.data?.message || "Something went wrong.");
   }
 };

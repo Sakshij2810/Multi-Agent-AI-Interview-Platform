@@ -6,6 +6,14 @@ redis.on("connect", () => {
   console.log("redis connected");
 });
 
+redis.on("ready", () => {
+  console.log("Redis is ready to accept commands");
+});
+
+redis.on("error", (error) => {
+  console.error("Redis connection error:", error.message);
+});
+
 export default redis;
 
 /*

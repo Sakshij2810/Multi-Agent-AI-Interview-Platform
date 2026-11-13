@@ -12,6 +12,7 @@ export const interviewAgent = async (data) => {
         : technicalInterviewPrompt(data);
 
     response = await llm.invoke(prompt);
+    console.log("response.....", response);
 
     const cleaned = response.content
       .replace(/```json/g, "")
@@ -20,9 +21,14 @@ export const interviewAgent = async (data) => {
 
     return JSON.parse(cleaned);
   } catch (error) {
-    console.log("Interview Agent Parse Error");
-    console.log("LLM response", response?.content);
+    console.error("Interview Agent Error:", error);
+    console.error("Error message:", error.message);
+    console.error("Error status:", error.status);
+    console.error("Error code:", error.code);
+    console.error("LLM response:", response?.content);
 
-    throw new Error("Failed to generate interview questions.");
+    throw new Error("Failed to generate interview questions.", {
+      cause: error,
+    });
   }
 };
