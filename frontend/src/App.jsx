@@ -9,9 +9,9 @@ import { getResume } from "./apis/resume.api.js";
 import { useDispatch } from "react-redux";
 import { setResume } from "./redux/resumeSlice.js";
 import ResumeBuilder from "./pages/ResumeBuilder.jsx";
-import InterviewStart from "./pages/Interview/InterviewStart.jsx";
-import InterviewPage from "./pages/Interview/InterviewPage.jsx";
-import InterviewReport from "./pages/Interview/InterviewReport.jsx";
+import InterviewStart from "./pages/interview/InterviewStart.jsx";
+import InterviewPage from "./pages/interview/InterviewPage.jsx";
+import InterviewReport from "./pages/interview/InterviewReport.jsx";
 import Roadmap from "./pages/Roadmap.jsx";
 import Billing from "./pages/Billing.jsx";
 
