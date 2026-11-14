@@ -209,7 +209,7 @@ After the free-tier period for the initial AWS setup ended, I moved to the follo
 
 ### Current Live URL
 
-[Open the application dashboard](https://multi-agent-ai-interview-platform-nu.vercel.app/dashboard)
+[Open the application](https://multi-agent-ai-interview-platform-nu.vercel.app/)
 
 ### Important: Free-Tier Backend Behaviour
 
@@ -223,7 +223,7 @@ As a result:
 
 This is a hosting limitation rather than an intended application behaviour. For a complete view of the project, please refer to the demo walkthrough:
 
-**Demo video:** _Add your video URL here._
+**Demo video:** [Multi-Agent-AI-Interview-Platform](https://drive.google.com/file/d/12t9kVZfZjaZEg5GOCUMtiCcubH9rDeZ-/view?usp=sharing)
 
 ---
 
