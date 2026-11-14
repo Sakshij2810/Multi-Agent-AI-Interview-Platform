@@ -8,7 +8,7 @@ import redis from "../../../shared/redis/redis.js";
 export const GoogleAuth = async (req, res) => {
   try {
     const { token } = req.body; // Get Firebase ID token sent by frontend
-    console.log("token....", token);
+
     const decoded = await getAuth(app).verifyIdToken(token); // Verify token and get authenticated user's data
 
     // Check if user already exists in database

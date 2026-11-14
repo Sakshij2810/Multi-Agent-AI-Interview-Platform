@@ -1,3 +1,15 @@
 1.  "Unauthorised" popup at start
 2. "sometimes coins didnt get shown on ui"
-3. diksha account -> error -> "cannot read properties of null, reading "userId"
+
+diksha: 
+1. diksha account -> error -> "cannot read properties of null, reading "userId"
+
+
+khushi: 
+for u one issue we noticed: 
+1. interview speaking in male voice but female video is playing 
+2. when voice stops still interviewer video is keep playing
+
+tejas:
+1. xss (input fields resume service)
+2. ddos attack
